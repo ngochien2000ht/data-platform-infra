@@ -1,0 +1,10 @@
+# Prod global Helm values (placeholder)
+replicaCount: 3
+imagePullPolicy: IfNotPresent
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"

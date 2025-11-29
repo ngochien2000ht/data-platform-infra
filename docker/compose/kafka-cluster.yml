@@ -1,0 +1,104 @@
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "${KAFKA_BROKER_PORT}:9092"
+      - "9999:9999"
+    environment:
+      # --- KRaft roles ---
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_NODE_ID: ${KAFKA_NODE_ID}
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
+
+      # --- Listeners ---
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,EXTERNAL://0.0.0.0:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # --- Required in KRaft mode ---
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+
+      # --- Cluster ID ---
+      CLUSTER_ID: "${CLUSTER_ID}"
+
+      # Additional configs to fix connection issues
+      KAFKA_BROKER_ID: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_HEAP_OPTS: '-Xmx1G -Xms1G'
+      KAFKA_LOG4J_LOGGERS: "kafka.authorizer.logger=INFO"
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: "INFO"
+
+      # --- Topic replication factors for single node ---
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+
+      # --- Disable auto create topic ---
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+      # Metadata settings
+      KAFKA_METADATA_LOG_SEGMENT_MS: 15000
+      KAFKA_METADATA_MAX_RETENTION_MS: 60000
+      KAFKA_METADATA_LOG_MAX_RECORD_BYTES_BETWEEN_SNAPSHOTS: 20000
+
+    volumes:
+      - ..init/kafka-create-topics.sh:/tmp/create-topics.sh
+      - kafka_data:/var/lib/kafka/data
+    user: "1000:1000"  # Set appropriate user:group ID
+    command: |
+      bash -c "
+        if [ ! -f '/var/lib/kafka/data/meta.properties' ]; then
+          kafka-storage format --ignore-formatted -t ${CLUSTER_ID} -c /etc/kafka/kafka.properties
+        fi
+
+        /etc/confluent/docker/run &
+
+        # wait until kafka is ready
+        echo 'Waiting for Kafka broker to be ready...'
+        until kafka-topics --bootstrap-server kafka:9092 --list > /dev/null 2>&1; do
+          sleep 5
+        done
+
+        # create topics
+        bash /tmp/create-topics.sh
+        wait
+      "
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    networks:
+      - bigdata-net
+
+  akhq:
+    image: tchiotludo/akhq:0.26.0
+    container_name: akhq
+    hostname: akhq
+    depends_on:
+      - kafka
+    ports:
+      - "${AKHQ_PORT}:8080"
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: "kafka:29092"
+
+    networks:
+      - bigdata-net
+
+volumes:
+  kafka_data:
+
+networks:
+  bigdata-net:

@@ -1,0 +1,11 @@
+# config/minio/users.yaml
+users:
+  - name: spark_user
+    group: writers
+    policy: ingestion-policy
+  - name: analytics_user
+    group: readers
+    policy: read-only-policy
+  - name: backup_user
+    group: backup
+    policy: backup-policy

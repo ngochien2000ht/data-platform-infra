@@ -1,0 +1,9 @@
+apiVersion: minio.min.io/v1
+kind: MinIOInstance
+metadata:
+  name: minio-instance
+  namespace: minio
+spec:
+  # Replace with operator-specific spec
+  replicas: 1
+  mountPath: /export

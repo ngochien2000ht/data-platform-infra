@@ -1,0 +1,38 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'job']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: 'default'
+    slack_configs:
+      - api_url: ''
+        channel: '#data-alerts'
+        send_resolved: true
+        title: '{{ .CommonAnnotations.summary }}'
+        text: >-
+          {{ .CommonAnnotations.description }}
+          {{ range .Alerts }}
+          • *{{ .Labels.alertname }}* - {{ .Labels.instance }}
+          {{ end }}
+        icon_emoji: ':fire:'
+
+  - name: 'telegram'
+    telegram_configs:
+      - bot_token: '123456789:AAF...'
+        chat_id: -1001234567890
+        send_resolved: true
+
+  - name: 'email-critical'
+    email_configs:
+      - to: 'sre@yourcompany.com'
+        from: 'alert@yourcompany.com'
+        smarthost: 'smtp.gmail.com:587'
+        auth_username: 'alert@yourcompany.com'
+        auth_password: 'your-app-password'
+        require_tls: true

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-buckets
+  namespace: minio
+data:
+  buckets: |
+    - name: raw
+      policy: readwrite
+    - name: processed
+      policy: readwrite
+    - name: gold
+      policy: readonly

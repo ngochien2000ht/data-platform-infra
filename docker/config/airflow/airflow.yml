@@ -1,0 +1,24 @@
+# config/airflow/airflow.yaml
+connections:
+  kafka_default:
+    conn_type: kafka
+    extra: '{"bootstrap.servers": "kafka:9092"}'
+
+  minio_s3:
+    conn_type: amazon
+    extra: |
+      {
+        "host": "http://minio:9000",
+        "aws_access_key_id": "admin",
+        "aws_secret_access_key": "password123"
+      }
+
+  elasticsearch_conn:
+    conn_type: http
+    host: elasticsearch
+    port: 9200
+    extra: '{"username": "elastic", "password": "elasticpass123"}'
+
+variables:
+  SPARK_MASTER: spark://spark-master:7077
+  CHECKPOINT_BASE: /tmp/checkpoints

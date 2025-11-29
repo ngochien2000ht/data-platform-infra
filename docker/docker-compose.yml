@@ -1,0 +1,13 @@
+# infrastructure/docker/docker-compose.yml
+include:
+  - compose/kafka-cluster.yml
+  - compose/compose/elasticsearch-kibana.yml
+  - compose/minio.yml
+  - compose/spark.yml
+  - compose/airflow.yml
+  - compose/monitoring.yml
+
+networks:
+  bigdata-net:
+    driver: bridge
+    name: bigdata-net

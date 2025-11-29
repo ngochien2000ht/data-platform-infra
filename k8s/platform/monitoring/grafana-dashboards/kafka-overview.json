@@ -1,0 +1,6 @@
+{
+  "title": "Kafka Overview (placeholder)",
+  "panels": [],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"}
+}

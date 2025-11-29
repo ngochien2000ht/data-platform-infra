@@ -1,0 +1,15 @@
+<clickhouse>
+    <profiles>
+        <default>
+            <date_time_input_format>best_effort</date_time_input_format>
+        </default>
+    </profiles>
+    <users>
+        <clickhouse>
+            <password>123QWE</password>
+            <profile>default</profile>
+            <quota>default</quota>
+            <access_management>1</access_management>
+        </clickhouse>
+    </users>
+</clickhouse>

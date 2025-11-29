@@ -1,0 +1,12 @@
+# Airflow Helm values (placeholder)
+executor: Celery
+airflow:
+  fernetKey: "REPLACE_ME"
+  secretKey: "REPLACE_ME"
+web:
+  replicas: 1
+workers:
+  replicas: 1
+persistence:
+  enabled: true
+  size: 10Gi

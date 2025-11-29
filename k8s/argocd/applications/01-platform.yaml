@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 01-platform
+  labels:
+    app.kubernetes.io/part-of: data-platform
+spec:
+  project: default
+  source:
+    repoURL: "REPO_URL_PLACEHOLDER"
+    path: "platform"
+    targetRevision: HEAD
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kube-system
+  syncPolicy:
+    automated: {}

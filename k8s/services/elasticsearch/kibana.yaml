@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-placeholder
+  namespace: elasticsearch
+data:
+  README: |
+    Replace with real Kibana/Kibana CR manifest (Kibana from ECK or standalone deployment).

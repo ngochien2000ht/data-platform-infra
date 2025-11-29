@@ -1,0 +1,14 @@
+# ArgoCD cluster secret template for EKS prod
+# Replace placeholders with real values or use kustomize to generate.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-eks-prod
+  namespace: argocd
+stringData:
+  name: eks-prod-ap-southeast-1
+  server: https://APISERVER_ENDPOINT
+  config: |
+    {
+      "bearerToken": "REPLACE_WITH_TOKEN"
+    }

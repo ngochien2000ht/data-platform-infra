@@ -1,0 +1,5 @@
+creation_rules:
+  - pgp: []
+    encrypted_regex: '^(data|secrets)$'
+    path_regex: '.*secrets.*\.ya?ml$'
+    age: []

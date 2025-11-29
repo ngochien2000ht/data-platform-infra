@@ -1,0 +1,17 @@
+# config/kafka/kafka.yaml
+bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+sasl_mechanism: PLAIN
+security_protocol: PLAINTEXT
+
+producer:
+  acks: all
+  retries: 5
+  batch_size: 16384
+  linger_ms: 10
+  compression_type: snappy
+
+consumer:
+  group_id: streaming-processing-group
+  auto_offset_reset: earliest
+  enable_auto_commit: false
+  max_poll_records: 500

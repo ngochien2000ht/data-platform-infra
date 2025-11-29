@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-placeholder
+  namespace: postgres
+data:
+  README: |
+    Replace this file with a StatefulSet/Helm values for Postgres.
+    Example: 3 replicas for HA, persistence enabled, credentials managed by ExternalSecrets.

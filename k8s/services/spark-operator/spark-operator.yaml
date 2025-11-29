@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-operator
+  namespace: spark-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-operator
+  template:
+    metadata:
+      labels:
+        app: spark-operator
+    spec:
+      containers:
+        - name: spark-operator
+          image: gcr.io/spark-operator/spark-operator:latest
+          args: ["--enable-rbac=true"]

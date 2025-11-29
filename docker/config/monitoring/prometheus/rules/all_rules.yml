@@ -1,0 +1,78 @@
+groups:
+  - name: system-alerts
+    rules:
+      - alert: HostHighCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CPU cao trên {{ $labels.instance }}"
+          description: "CPU usage > 80% trong 5 phút liên tục"
+
+      - alert: HostOutOfMemory
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 15
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Host sắp hết RAM"
+          description: "Available memory < 15%"
+
+      - alert: HostDiskWillFillIn4Hours
+        expr: predict_linear(node_filesystem_free_bytes{job="node-exporter",mountpoint="/"}[1h], 4*3600) < 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk sẽ đầy trong 4h"
+          description: "Dự đoán hết dung lượng root partition"
+
+  - name: airflow-alerts
+    rules:
+      - alert: AirflowDagFailed
+        expr: airflow_dag_run_failed > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DAG {{ $labels.dag_id }} failed"
+          description: "DAG {{ $labels.dag_id }} có task failed"
+
+      - alert: AirflowTaskDurationTooLong
+        expr: airflow_task_duration > 3600
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Task chạy quá lâu"
+          description: "Task {{ $labels.task_id }} trong DAG {{ $labels.dag_id }} > 1h"
+
+  - name: kafka-alerts
+    rules:
+      - alert: KafkaUnderReplicatedPartitions
+        expr: kafka_cluster_partition_underreplicated > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka có partition under-replicated"
+
+  - name: minio-alerts
+    rules:
+      - alert: MinioNodeOffline
+        expr: minio_node_offline_total > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MinIO node offline"
+
+  - name: spark-alerts
+    rules:
+      - alert: SparkDriverOOM
+        expr: increase(spark_driver_oom_errors_total[5m]) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "Spark driver OOM"

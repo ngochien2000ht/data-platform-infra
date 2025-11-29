@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 03-elasticsearch
+  labels:
+    app.kubernetes.io/part-of: data-platform
+spec:
+  project: default
+  source:
+    repoURL: "REPO_URL_PLACEHOLDER"
+    path: "services/elasticsearch"
+    targetRevision: HEAD
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: elasticsearch
+  syncPolicy:
+    automated: {}

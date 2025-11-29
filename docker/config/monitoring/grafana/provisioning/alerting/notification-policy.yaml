@@ -1,0 +1,15 @@
+# grafana/provisioning/alerting/notification-policy.yaml
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: slack-critical          # default receiver
+    group_by: [alertname, cluster, instance]
+    matchers:
+      - severity = critical
+
+  - orgId: 1
+    receiver: telegram
+    group_by: [alertname]
+    matchers:
+      - severity =~ "warning|critical"

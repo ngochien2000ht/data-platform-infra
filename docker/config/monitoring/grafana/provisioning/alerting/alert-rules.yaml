@@ -1,0 +1,29 @@
+# grafana/provisioning/alerting/alert-rules.yaml
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: system-alerts
+    folder: System
+    interval: 1m
+    rules:
+      - uid: cpu-high
+        title: "CPU > 90%"
+        condition: A
+        data:
+          - refId: A
+            queryType: ""
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: "CPU cao trên {{ $labels.instance }}"
+        labels:
+          severity: critical

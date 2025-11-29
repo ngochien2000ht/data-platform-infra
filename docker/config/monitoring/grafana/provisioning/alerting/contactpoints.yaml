@@ -1,0 +1,23 @@
+# grafana/provisioning/alerting/contactpoints.yaml
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: slack-critical
+    receivers:
+      - uid: slack1
+        type: slack
+        settings:
+          url: ''
+          channel: '#data-alerts'
+          icon_emoji: ':fire:'
+          mention: '@here'
+
+  - orgId: 1
+    name: telegram
+    receivers:
+      - uid: tg1
+        type: telegram
+        settings:
+          bottoken: '123456789:AAF...'
+          chatid: '-1001234567890'

@@ -1,0 +1,106 @@
+# prometheus/rules/system_rules.yml
+groups:
+  - name: host-system-alerts
+    rules:
+
+      # ==================== CPU ====================
+      - alert: HostHighCpuUsage_80Percent
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage > 80% trên {{ $labels.instance }}"
+          description: "CPU usage đã vượt 80% trong 5 phút liên tục. Có nguy cơ ảnh hưởng performance."
+
+      - alert: HostCriticalCpuUsage_95Percent
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CPU usage > 95% - CRITICAL"
+          description: "Máy chủ {{ $labels.instance }} đang bị quá tải CPU nghiêm trọng!"
+
+      # ==================== MEMORY ====================
+      - alert: HostOutOfMemory_15Percent
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 15
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RAM còn dưới 15% trên {{ $labels.instance }}"
+          description: "Available memory chỉ còn {{ $value | humanizePercentage }}"
+
+      - alert: HostCriticallyLowMemory_5Percent
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RAM gần cạn kiệt (<5%)"
+          description: "Chỉ còn {{ $value | humanizePercentage }} RAM khả dụng → có thể OOM bất cứ lúc nào!"
+
+      # ==================== SWAP ====================
+      - alert: HostSwapUsageHigh
+        expr: (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / node_memory_SwapTotal_bytes * 100 > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Swap usage > 50%"
+          description: "Máy đang dùng swap nhiều → hiệu năng giảm mạnh"
+
+      # ==================== DISK SPACE ====================
+      - alert: HostDiskWillFillIn24Hours
+        expr: predict_linear(node_filesystem_free_bytes{fstype=~"ext4|xfs",mountpoint=~"/.*"}[2h], 24*3600) < 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk {{ $labels.mountpoint }} sẽ đầy trong 24h"
+          description: "Partition {{ $labels.mountpoint }} trên {{ $labels.instance }} còn ít không gian"
+
+      - alert: HostDiskWillFillIn4Hours_CRITICAL
+        expr: predict_linear(node_filesystem_free_bytes{fstype=~"ext4|xfs",mountpoint=~"/.*"}[1h], 4*3600) < 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk sẽ đầy trong 4 giờ - URGENT"
+          description: "Cần dọn dẹp ngay partition {{ $labels.mountpoint }}!"
+
+      - alert: HostRootPartitionFull_90Percent
+        expr: node_filesystem_free_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} * 100 < 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Root partition còn dưới 10%"
+
+      # ==================== DISK I/O ====================
+      - alert: HostHighDiskIO
+        expr: rate(node_disk_io_time_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk I/O bão hòa trên {{ $labels.instance }}"
+
+      # ==================== NETWORK ====================
+      - alert: HostNetworkErrorsHigh
+        expr: rate(node_network_receive_errs_total[5m]) + rate(node_network_transmit_errs_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Lỗi network cao trên {{ $labels.device }}"
+
+      # ==================== SYSTEM LOAD ====================
+      - alert: HostHighLoadAverage_1m
+        expr: node_load1 > (count by(instance) (node_cpu_seconds_total{mode="system"})) * 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Load average cao (1m)"

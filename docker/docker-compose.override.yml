@@ -1,0 +1,28 @@
+# infrastructure/docker/docker-compose.override.yml
+version: '3.9'
+
+services:
+  spark-master:
+    volumes:
+      - ../src:/opt/spark-apps/src
+      - ./config/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+
+  spark-worker-1:
+    volumes:
+      - ../src:/opt/spark-apps/src
+
+  spark-worker-2:
+    volumes:
+      - ../src:/opt/spark-apps/src
+
+  airflow-webserver:
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/plugins:/opt/airflow/plugins
+      - ../src:/opt/airflow/src
+      - ../config:/opt/airflow/config
+
+  airflow-scheduler:
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../src:/opt/airflow/src

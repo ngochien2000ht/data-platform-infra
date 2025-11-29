@@ -1,0 +1,22 @@
+name: clickhouse
+services:
+  clickhouse:
+    image: "registry.atalink.com:10443/devops/clickhouse/clickhouse-server:25.6.5.41"
+    container_name: "qc-clickhouse-server"
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+      - "9009:9009"
+      - "9363:9363"
+    volumes:
+      - "/mnt/data/clickhouse/:/var/lib/clickhouse"
+      - "/mnt/log/clickhouse:/var/log/clickhouse-server"
+      - ${CONFIG_PATH}/clickhouse/users.xml:/etc/clickhouse-server/users.d/custom_users.xml
+      - ${CONFIG_PATH}/clickhouse/config.xml:/etc/clickhouse-server/config.d/custom_config.xml
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    environment:
+      - CLICKHOUSE_DB=default
+    restart: always

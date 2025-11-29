@@ -1,0 +1,45 @@
+# Production profile - no code mounts, official images only
+services:
+  postgres:
+    restart: always
+    environment:
+      POSTGRES_INITDB_ARGS: "-c max_connections=200"
+
+  airflow-webserver:
+    image: apache/airflow:2.7.0-python3.11
+    restart: always
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "False"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "True"
+    # No volume mounts for dags - use image-based deployment
+
+  airflow-scheduler:
+    image: apache/airflow:2.7.0-python3.11
+    restart: always
+
+  airflow-worker:
+    image: apache/airflow:2.7.0-python3.11
+    restart: always
+
+  kafka:
+    restart: always
+    environment:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+  elasticsearch:
+    restart: always
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+
+  spark-master:
+    restart: always
+
+  prometheus:
+    restart: always
+
+  grafana:
+    restart: always
+    environment:
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: ""

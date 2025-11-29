@@ -1,0 +1,198 @@
+micronaut:
+  security:
+    enabled: true
+
+    oauth2:
+      enabled: true
+      login-uri: "${micronaut.server.context-path:}/oauth/login{/provider}"
+      callback-uri: "${micronaut.server.context-path:}/oauth/callback{/provider}"
+      clients:
+        oidc_keycloak:
+          client-id: "dev-kafka-client"
+          client-secret: "OLcZ9i4TpYalI6DmKvEay2wL6OMdWvlk"
+          openid:
+            issuer: "http://localhost:8081/realms/master"   # <--- KEYCLOAK LOCALHOST
+
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: >
+                eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE2NjQ4NzUxMjMsImV4cCI6MTY2NDg3NTEyNH0.eyJ1c2VybmFtZSI6ImJsdWVza3ktZGV2b3BzIiwiZW1haWwiOiJibHVlc2t5LWRldm9wc0BhdGFsaW5rLnZuIn0.4GiFjEXvTLLTdrYOitJuxHI7xjvMKZaOmB1HTs8ebXY
+        generator:
+          access-token:
+            expiration: 2592000
+
+    basic-auth:
+      enabled: false
+    
+    redirect:
+      login-success: "${micronaut.server.context-path:}/ui"
+      forbidden:
+        url: "${micronaut.server.context-path:}/ui/login/forbidden"
+      unauthorized:
+        url: "${micronaut.server.context-path:}/ui/login/unauthorized"
+      login-failure: "${micronaut.server.context-path:}/ui/login/failed"
+      logout: "${micronaut.server.context-path:}/ui/login"
+      prior-to-login: true
+
+    ip-patterns:
+      - 127.0.0.1
+      - 0.0.0.0
+      - ::1
+
+    intercept-url-map:
+      - pattern: "${micronaut.server.context-path:}/ui/**"
+        access: "isAnonymous()"
+      - pattern: "${micronaut.server.context-path:}/static/**"
+        access: "isAnonymous()"
+      - pattern: "${micronaut.server.context-path:}/swagger/**"
+        access: "isAnonymous()"
+
+  server:
+    cors:
+      enabled: true
+      configurations:
+        all:
+          allowedOrigins:
+            - ^http(|s):\/\/localhost:.*$
+          allowedMethods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+
+akhq:
+  server:
+    access-log:
+      enabled: true
+      name: org.akhq.log.access
+      format: "[Date: {}] [Duration: {} ms] [Url: {} {}] [Status: {}] [Ip: {}] [User: {}]"
+
+  # Kafka clusters running on localhost
+  connections:
+    dev-kafka:
+      properties:
+        bootstrap.servers: "kafka:9092"   # <--- Docker container name, KHÔNG dùng localhost
+        security.protocol: PLAINTEXT
+
+    qc-kafka:
+      properties:
+        bootstrap.servers: "kafka:9092"   # <--- same local cluster
+        security.protocol: PLAINTEXT
+
+  topic-data:
+    sort: NEWEST
+
+  security:
+    default-group: anonymous
+
+    groups:
+      anonymous:
+        name: anonymous
+
+      admin:
+        name: admin
+        roles:
+          - topic/read
+          - topic/insert
+          - topic/delete
+          - topic/config/update
+          - node/read
+          - node/config/update
+          - topic/data/read
+          - topic/data/insert
+          - topic/data/delete
+          - group/read
+          - group/delete
+          - group/offsets/update
+          - registry/read
+          - registry/insert
+          - registry/update
+          - registry/delete
+          - registry/version/delete
+          - acls/read
+          - connect/read
+          - connect/insert
+          - connect/update
+          - connect/delete
+          - connect/state/update
+        attributes:
+          topics-filter-regexp:
+            - ".*"
+          connects-filter-regexp:
+            - ".*"
+          consumer-groups-filter-regexp:
+            - ".*"
+
+      topic-reader:
+        name: topic-reader
+        roles:
+          - topic/read
+          - group/read
+          - registry/read
+          - acls/read
+          - connect/read
+        attributes:
+          topics-filter-regexp:
+            - "^test.*"
+          connects-filter-regexp:
+            - "^test.*"
+          consumer-groups-filter-regexp:
+            - "^test.*"
+
+      kafka-dev:
+        name: kafka-dev
+        roles:
+          - topic/read
+          - node/read
+          - topic/data/read
+          - group/read
+          - registry/read
+          - acls/read
+          - connect/read
+        attributes:
+          topics-filter-regexp:
+            - ".*"
+          consumer-groups-filter-regexp:
+            - ".*"
+          connects-filter-regexp:
+            - ".*"
+
+    basic-auth:
+      - username: bluesky
+        password: a7de3a8c37520a2a4f8d7e93141e641fb56e5a8027d9d491d0b9c9e4a45a360e
+        groups:
+          - kafka-dev
+
+    oidc:
+      enabled: true
+      providers:
+        oidc_keycloak:
+          label: "Login with Local Keycloak"
+          username-field: preferred_username
+          groups-field: roles
+          default-group: topic-reader
+          groups:
+            - name: admin
+              groups:
+                - admin
+            - name: dev
+              groups:
+                - kafka-dev
+          users:
+            - username: admin
+              groups:
+                - admin
+
+    header-auth:
+      user-header: x-akhq-user
+      groups-header: x-akhq-group
+      groups-header-separator: ","
+      ip-patterns:
+        - "127.0.0.1"
+      default-group: topic-reader
+      groups: []
+      users: []
